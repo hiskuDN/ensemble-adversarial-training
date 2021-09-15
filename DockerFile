@@ -1,0 +1,18 @@
+FROM continuumio/anaconda3
+
+LABEL maintainer="Hiskias Dingeto hiskias.melke1@gmail.com" \
+    description="Ensembel Adversarial Training"
+
+COPY ./models /models
+
+WORKDIR /
+
+RUN pip --no-cache-dir install \
+    numpy \
+    keras \ 
+    tensorflow
+
+CMD python -m train models/modelA --type=0 \ 
+    python -m train models/modelB --type=1 \
+    python -m train models/modelC --type=2 \
+    python -m train models/modelD --type=3
