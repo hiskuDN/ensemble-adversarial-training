@@ -7,6 +7,7 @@ from keras.utils import np_utils
 
 import argparse
 import numpy as np
+from tensorflow.python.ops import init_ops
 
 from tensorflow.python.platform import flags
 FLAGS = flags.FLAGS
@@ -32,14 +33,14 @@ def data_mnist(one_hot=True):
     (X_train, y_train), (X_test, y_test) = mnist.load_data()
 
     X_train = X_train.reshape(X_train.shape[0],
-                              FLAGS.IMAGE_ROWS,
-                              FLAGS.IMAGE_COLS,
-                              FLAGS.NUM_CHANNELS)
+                              28,
+                              28,
+                              1)
 
     X_test = X_test.reshape(X_test.shape[0],
-                            FLAGS.IMAGE_ROWS,
-                            FLAGS.IMAGE_COLS,
-                            FLAGS.NUM_CHANNELS)
+                            28,
+                            28,
+                            1)
 
     X_train = X_train.astype('float32')
     X_test = X_test.astype('float32')
@@ -49,12 +50,12 @@ def data_mnist(one_hot=True):
     print(X_train.shape[0], 'train samples')
     print(X_test.shape[0], 'test samples')
 
-    print "Loaded MNIST test data."
+    print("Loaded MNIST test data.")
 
     if one_hot:
         # convert class vectors to binary class matrices
-        y_train = np_utils.to_categorical(y_train, FLAGS.NUM_CLASSES).astype(np.float32)
-        y_test = np_utils.to_categorical(y_test, FLAGS.NUM_CLASSES).astype(np.float32)
+        y_train = np_utils.to_categorical(y_train, 10).astype(np.float32)
+        y_test = np_utils.to_categorical(y_test, 10).astype(np.float32)
 
     return X_train, y_train, X_test, y_test
 
@@ -62,10 +63,10 @@ def data_mnist(one_hot=True):
 def modelA():
     model = Sequential()
     model.add(Convolution2D(64, 5, 5,
-                            border_mode='valid',
-                            input_shape=(FLAGS.IMAGE_ROWS,
-                                         FLAGS.IMAGE_COLS,
-                                         FLAGS.NUM_CHANNELS)))
+                            padding='valid',
+                            input_shape=(28,
+                                         28,
+                                         1)))
     model.add(Activation('relu'))
 
     model.add(Convolution2D(64, 5, 5))
@@ -78,43 +79,40 @@ def modelA():
     model.add(Activation('relu'))
 
     model.add(Dropout(0.5))
-    model.add(Dense(FLAGS.NUM_CLASSES))
+    model.add(Dense(10))
     return model
 
 
 def modelB():
     model = Sequential()
-    model.add(Dropout(0.2, input_shape=(FLAGS.IMAGE_ROWS,
-                                        FLAGS.IMAGE_COLS,
-                                        FLAGS.NUM_CHANNELS)))
-    model.add(Convolution2D(64, 8, 8,
-                            subsample=(2, 2),
-                            border_mode='same'))
+    model.add(Dropout(0.2, input_shape=(28,
+                                        28,
+                                        1)))
+    model.add(Convolution2D(64, 8, 2,
+                            padding='same'))
     model.add(Activation('relu'))
 
-    model.add(Convolution2D(128, 6, 6,
-                            subsample=(2, 2),
-                            border_mode='valid'))
+    model.add(Convolution2D(128, 6, 2,
+                            padding='valid'))
     model.add(Activation('relu'))
 
-    model.add(Convolution2D(128, 5, 5,
-                            subsample=(1, 1)))
+    model.add(Convolution2D(128, 5, 1))
     model.add(Activation('relu'))
 
     model.add(Dropout(0.5))
 
     model.add(Flatten())
-    model.add(Dense(FLAGS.NUM_CLASSES))
+    model.add(Dense(10))
     return model
 
 
 def modelC():
     model = Sequential()
-    model.add(Convolution2D(128, 3, 3,
-                            border_mode='valid',
-                            input_shape=(FLAGS.IMAGE_ROWS,
-                                         FLAGS.IMAGE_COLS,
-                                         FLAGS.NUM_CHANNELS)))
+    model.add(Convolution2D(128, 3,
+                            padding='valid',
+                            input_shape=(28,
+                                         28,
+                                         1)))
     model.add(Activation('relu'))
 
     model.add(Convolution2D(64, 3, 3))
@@ -127,27 +125,27 @@ def modelC():
     model.add(Activation('relu'))
 
     model.add(Dropout(0.5))
-    model.add(Dense(FLAGS.NUM_CLASSES))
+    model.add(Dense(10))
     return model
 
 
 def modelD():
     model = Sequential()
 
-    model.add(Flatten(input_shape=(FLAGS.IMAGE_ROWS,
-                                   FLAGS.IMAGE_COLS,
-                                   FLAGS.NUM_CHANNELS)))
+    model.add(Flatten(input_shape=(28,
+                                   28,
+                                   1)))
 
-    model.add(Dense(300, init='he_normal', activation='relu'))
+    model.add(Dense(300, kernel_initializer='he_normal', activation='relu'))
     model.add(Dropout(0.5))
-    model.add(Dense(300, init='he_normal', activation='relu'))
+    model.add(Dense(300, kernel_initializer='he_normal', activation='relu'))
     model.add(Dropout(0.5))
-    model.add(Dense(300, init='he_normal', activation='relu'))
+    model.add(Dense(300, kernel_initializer='he_normal', activation='relu'))
     model.add(Dropout(0.5))
-    model.add(Dense(300, init='he_normal', activation='relu'))
+    model.add(Dense(300, kernel_initializer='he_normal', activation='relu'))
     model.add(Dropout(0.5))
 
-    model.add(Dense(FLAGS.NUM_CLASSES))
+    model.add(Dense(10))
     return model
 
 

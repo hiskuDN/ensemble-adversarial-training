@@ -5,6 +5,7 @@ from keras.models import save_model
 
 from mnist import *
 from tf_utils import tf_train, tf_test_error_rate
+import tensorflow._api.v2.compat.v1 as tf
 from attack_utils import gen_grad
 from fgs import symbolic_fgs
 
@@ -12,11 +13,12 @@ FLAGS = flags.FLAGS
 
 
 def main(model_name, adv_model_names, model_type):
+    tf.disable_v2_behavior()
     np.random.seed(0)
     assert keras.backend.backend() == "tensorflow"
     set_mnist_flags()
 
-    flags.DEFINE_bool('NUM_EPOCHS', args.epochs, 'Number of epochs')
+    flags.DEFINE_integer('NUM_EPOCHS', args.epochs, 'Number of epochs')
 
     # Get MNIST test data
     X_train, Y_train, X_test, Y_test = data_mnist()
@@ -24,11 +26,11 @@ def main(model_name, adv_model_names, model_type):
     data_gen = data_gen_mnist(X_train)
 
     x = K.placeholder(shape=(None,
-                             FLAGS.IMAGE_ROWS,
-                             FLAGS.IMAGE_COLS,
-                             FLAGS.NUM_CHANNELS))
+                             28,
+                             28,
+                             1))
 
-    y = K.placeholder(shape=(FLAGS.BATCH_SIZE, FLAGS.NUM_CLASSES))
+    y = K.placeholder(shape=(10, 10))
 
     eps = args.eps
 
@@ -48,15 +50,17 @@ def main(model_name, adv_model_names, model_type):
         x_advs[i] = symbolic_fgs(x, grad, eps=eps)
 
     # Train an MNIST model
-    tf_train(x, y, model, X_train, Y_train, data_gen, x_advs=x_advs)
+    tf_train(x, y, model, X_train, Y_train, data_gen,
+             x_advs=x_advs, num_of_epochs=args.epochs)
 
     # Finally print the result!
     test_error = tf_test_error_rate(model, x, X_test, Y_test)
     print('Test error: %.1f%%' % test_error)
     save_model(model, model_name)
     json_string = model.to_json()
-    with open(model_name+'.json', 'wr') as f:
+    with open(model_name+'.json', 'w') as f:
         f.write(json_string)
+
 
 if __name__ == '__main__':
     import argparse

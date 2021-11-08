@@ -1,6 +1,7 @@
 import keras.backend as K
 import numpy as np
-import tensorflow as tf
+# import tensorflow as tf
+import tensorflow._api.v2.compat.v1 as tf
 from tensorflow.python.platform import flags
 from attack_utils import gen_adv_loss
 
@@ -28,16 +29,16 @@ def batch_eval(tf_inputs, tf_outputs, numpy_inputs):
     for _ in tf_outputs:
         out.append([])
 
-    for start in range(0, m, FLAGS.BATCH_SIZE):
-        batch = start // FLAGS.BATCH_SIZE
+    for start in range(0, m, 10):
+        batch = start // 10
 
         # Compute batch start and end indices
-        start = batch * FLAGS.BATCH_SIZE
-        end = start + FLAGS.BATCH_SIZE
+        start = batch * 10
+        end = start + 10
         numpy_input_batches = [numpy_input[start:end]
                                for numpy_input in numpy_inputs]
         cur_batch_size = numpy_input_batches[0].shape[0]
-        assert cur_batch_size <= FLAGS.BATCH_SIZE
+        assert cur_batch_size <= 10
         for e in numpy_input_batches:
             assert e.shape[0] == cur_batch_size
 
@@ -56,8 +57,8 @@ def batch_eval(tf_inputs, tf_outputs, numpy_inputs):
     return out
 
 
-def tf_train(x, y, model, X_train, Y_train, generator, x_advs=None):
-    old_vars = set(tf.all_variables())
+def tf_train(x, y, model, X_train, Y_train, generator, x_advs=None, num_of_epochs=0):
+    old_vars = set(tf.global_variables())
     train_size = Y_train.shape[0]
 
     # Generate cross-entropy loss for training
@@ -84,14 +85,14 @@ def tf_train(x, y, model, X_train, Y_train, generator, x_advs=None):
     print('Initialized!')
 
     # Loop through training steps.
-    num_steps = int(FLAGS.NUM_EPOCHS * train_size + FLAGS.BATCH_SIZE - 1) // FLAGS.BATCH_SIZE
+    num_steps = int(num_of_epochs * train_size + 10 - 1) // 10
 
     step = 0
     for (batch_data, batch_labels) \
-            in generator.flow(X_train, Y_train, batch_size=FLAGS.BATCH_SIZE):
+            in generator.flow(X_train, Y_train, batch_size=10):
 
-        if len(batch_data) < FLAGS.BATCH_SIZE:
-            k = FLAGS.BATCH_SIZE - len(batch_data)
+        if len(batch_data) < 10:
+            k = 10 - len(batch_data)
             batch_data = np.concatenate([batch_data, X_train[0:k]])
             batch_labels = np.concatenate([batch_labels, Y_train[0:k]])
         
@@ -114,7 +115,7 @@ def tf_train(x, y, model, X_train, Y_train, generator, x_advs=None):
             elapsed_time = time.time() - start_time
             start_time = time.time()
             print('Step %d (epoch %.2f), %.2f s' %
-                (step, float(step) * FLAGS.BATCH_SIZE / train_size,
+                (step, float(step) * 10 / train_size,
                  elapsed_time))
             print('Minibatch loss: %.3f (%.3f, %.3f)' % (curr_loss, curr_l1, curr_l2))
 
