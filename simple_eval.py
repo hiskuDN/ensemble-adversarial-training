@@ -7,12 +7,15 @@ from carlini import CarliniLi
 from attack_utils import gen_grad
 from tf_utils import tf_test_error_rate, batch_eval
 from os.path import basename
+import tensorflow._api.v2.compat.v1 as tf
 
 from tensorflow.python.platform import flags
 FLAGS = flags.FLAGS
 
 
 def main(attack, src_model_name, target_model_names):
+    tf.disable_v2_behavior()
+
     np.random.seed(0)
     tf.set_random_seed(0)
 
@@ -39,11 +42,11 @@ def main(attack, src_model_name, target_model_names):
     # simply compute test error
     if attack == "test":
         err = tf_test_error_rate(src_model, x, X_test, Y_test)
-        print '{}: {:.1f}'.format(basename(src_model_name), err)
+        print('{}: {:.1f}'.format(basename(src_model_name), err))
 
         for (name, target_model) in zip(target_model_names, target_models):
             err = tf_test_error_rate(target_model, x, X_test, Y_test)
-            print '{}: {:.1f}'.format(basename(name), err)
+            print('{}: {:.1f}'.format(basename(name), err))
         return
 
     eps = args.eps
@@ -64,7 +67,8 @@ def main(attack, src_model_name, target_model_names):
 
     # iterative FGSM
     if attack == "ifgs":
-        adv_x = iter_fgs(src_model, x, y, steps=args.steps, eps=args.eps/args.steps)
+        adv_x = iter_fgs(src_model, x, y, steps=args.steps,
+                         eps=args.eps/args.steps)
 
     # Carlini & Wagner attack
     if attack == "CW":
@@ -80,11 +84,12 @@ def main(attack, src_model_name, target_model_names):
         X_adv = X_test + r
 
         err = tf_test_error_rate(src_model, x, X_adv, Y_test)
-        print '{}->{}: {:.1f}'.format(basename(src_model_name), basename(src_model_name), err)
+        print('{}->{}: {:.1f}'.format(basename(src_model_name),
+              basename(src_model_name), err))
 
         for (name, target_model) in zip(target_model_names, target_models):
             err = tf_test_error_rate(target_model, x, X_adv, Y_test)
-            print '{}->{}: {:.1f}'.format(basename(src_model_name), basename(name), err)
+            print('{}->{}: {:.1f}'.format(basename(src_model_name), basename(name), err))
 
         return
 
@@ -93,12 +98,13 @@ def main(attack, src_model_name, target_model_names):
 
     # white-box attack
     err = tf_test_error_rate(src_model, x, X_adv, Y_test)
-    print '{}->{}: {:.1f}'.format(basename(src_model_name), basename(src_model_name), err)
+    print('{}->{}: {:.1f}'.format(basename(src_model_name),
+          basename(src_model_name), err))
 
     # black-box attack
     for (name, target_model) in zip(target_model_names, target_models):
         err = tf_test_error_rate(target_model, x, X_adv, Y_test)
-        print '{}->{}: {:.1f}'.format(basename(src_model_name), basename(name), err)
+        print('{}->{}: {:.1f}'.format(basename(src_model_name), basename(name), err))
 
 
 if __name__ == "__main__":

@@ -1,11 +1,11 @@
-## li_attack.py -- attack a network optimizing for l_infinity distance
+# li_attack.py -- attack a network optimizing for l_infinity distance
 ##
-## Adapted from https://github.com/carlini/nn_robust_attacks
+# Adapted from https://github.com/carlini/nn_robust_attacks
 ##
-## Copyright (C) 2016, Nicholas Carlini <nicholas@carlini.com>.
+# Copyright (C) 2016, Nicholas Carlini <nicholas@carlini.com>.
 ##
-## This program is licenced under the BSD 2-Clause licence,
-## contained in the LICENCE file in this directory.
+# This program is licenced under the BSD 2-Clause licence,
+# contained in the LICENCE file in this directory.
 
 import tensorflow as tf
 import numpy as np
@@ -27,10 +27,10 @@ FLAGS = flags.FLAGS
 
 class CarliniLi:
     def __init__(self, sess, model,
-                 targeted = TARGETED, learning_rate = LEARNING_RATE,
-                 max_iterations = MAX_ITERATIONS, abort_early = ABORT_EARLY,
-                 initial_const = INITIAL_CONST, largest_const = LARGEST_CONST,
-                 const_factor = CONST_FACTOR, confidence = CONFIDENCE, eps=EPS):
+                 targeted=TARGETED, learning_rate=LEARNING_RATE,
+                 max_iterations=MAX_ITERATIONS, abort_early=ABORT_EARLY,
+                 initial_const=INITIAL_CONST, largest_const=LARGEST_CONST,
+                 const_factor=CONST_FACTOR, confidence=CONFIDENCE, eps=EPS):
         """
         The L_infinity optimized attack.
         Returns adversarial examples for the supplied model.
@@ -80,7 +80,7 @@ class CarliniLi:
         shape = (1, FLAGS.IMAGE_ROWS, FLAGS.IMAGE_COLS, FLAGS.NUM_CHANNELS)
 
         # the variable to optimize over
-        modifier = tf.Variable(np.zeros(shape,dtype=np.float32))
+        modifier = tf.Variable(np.zeros(shape, dtype=np.float32))
 
         tau = tf.placeholder(tf.float32, [])
         simg = tf.placeholder(tf.float32, shape)
@@ -98,10 +98,10 @@ class CarliniLi:
 
         if self.TARGETED:
             # if targetted, optimize for making the other class most likely
-            loss1 = tf.maximum(0.0,other-real+self.CONFIDENCE)
+            loss1 = tf.maximum(0.0, other-real+self.CONFIDENCE)
         else:
             # if untargeted, optimize for making this class least likely.
-            loss1 = tf.maximum(0.0,real-other+self.CONFIDENCE)
+            loss1 = tf.maximum(0.0, real-other+self.CONFIDENCE)
 
         # sum up the losses
         loss2 = tf.reduce_sum(tf.maximum(0.0, tf.abs(newimg-timg)-tau))
@@ -128,25 +128,27 @@ class CarliniLi:
                 # try solving for each value of the constant
                 #print('try const', CONST)
                 for step in range(self.MAX_ITERATIONS):
-                    feed_dict={timg: imgs,
-                               tlab:labs,
-                               tau: tt,
-                               simg: starts,
-                               const: CONST,
-                               K.learning_phase(): 0}
+                    feed_dict = {timg: imgs,
+                                 tlab: labs,
+                                 tau: tt,
+                                 simg: starts,
+                                 const: CONST,
+                                 K.learning_phase(): 0}
 
-                    #if step % (self.MAX_ITERATIONS//10) == 0:
+                    # if step % (self.MAX_ITERATIONS//10) == 0:
                     #    print(step, sess.run((loss,loss1,loss2),feed_dict=feed_dict))
 
                     # perform the update step
-                    _, works, linf_slack = sess.run([train, loss, loss2], feed_dict=feed_dict)
+                    _, works, linf_slack = sess.run(
+                        [train, loss, loss2], feed_dict=feed_dict)
 
                     # it worked
                     if works < .0001*CONST and (self.ABORT_EARLY or step == CONST-1):
                         get = sess.run(K.softmax(output), feed_dict=feed_dict)
                         works = compare(get, labs)
                         if works:
-                            scores, origscores, nimg = sess.run((output,orig_output,newimg),feed_dict=feed_dict)
+                            scores, origscores, nimg = sess.run(
+                                (output, orig_output, newimg), feed_dict=feed_dict)
                             return scores, origscores, nimg, CONST
 
                 # we didn't succeed, increase constant and try again
@@ -160,9 +162,11 @@ class CarliniLi:
                     # didn't reach target confidence
                     CONST *= self.const_factor
 
-                prev_scores, prev_origscores, prev_nimg = sess.run((output,orig_output,newimg),feed_dict=feed_dict)
+                prev_scores, prev_origscores, prev_nimg = sess.run(
+                    (output, orig_output, newimg), feed_dict=feed_dict)
 
-            scores, origscores, nimg = sess.run((output,orig_output,newimg),feed_dict=feed_dict)
+            scores, origscores, nimg = sess.run(
+                (output, orig_output, newimg), feed_dict=feed_dict)
             return scores, origscores, nimg, CONST
 
         return doit
@@ -175,8 +179,8 @@ class CarliniLi:
         """
         r = []
         i = 0
-        for img,target in zip(imgs, targets):
-            print i
+        for img, target in zip(imgs, targets):
+            print(i)
             r.extend(self.attack_single(img, target))
             i += 1
         return np.array(r)
@@ -187,7 +191,8 @@ class CarliniLi:
         """
 
         # the previous image
-        prev = np.copy(img).reshape((1, FLAGS.IMAGE_ROWS, FLAGS.IMAGE_COLS, FLAGS.NUM_CHANNELS))
+        prev = np.copy(img).reshape(
+            (1, FLAGS.IMAGE_ROWS, FLAGS.IMAGE_COLS, FLAGS.NUM_CHANNELS))
         tau = self.EPS
         const = self.INITIAL_CONST
 
