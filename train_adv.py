@@ -47,9 +47,11 @@ def main(model_name, adv_model_names, model_type):
     for i, m in enumerate(adv_models + [model]):
         logits = m(x)
         grad = gen_grad(x, logits, y, loss='training')
+        # generate FGS based adversarial examples for each model
         x_advs[i] = symbolic_fgs(x, grad, eps=eps)
 
     # Train an MNIST model
+    # pass x_advs which are FGS based adversarial examples 
     tf_train(x, y, model, X_train, Y_train, data_gen,
              x_advs=x_advs, num_of_epochs=args.epochs)
 
