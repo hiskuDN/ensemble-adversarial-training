@@ -13,7 +13,14 @@ from tensorflow.python.platform import flags
 FLAGS = flags.FLAGS
 
 
+def del_all_flags(FLAGS):
+    flags_dict = FLAGS._flags()    
+    keys_list = [keys for keys in flags_dict]    
+    for keys in keys_list:
+        FLAGS.__delattr__(keys)
+
 def set_mnist_flags():
+    del_all_flags(flags.FLAGS)
     try:
         flags.DEFINE_integer('BATCH_SIZE', 64, 'Size of training batches')
     except argparse.ArgumentError:
