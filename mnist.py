@@ -1,9 +1,10 @@
 from keras.datasets import mnist
 from keras.models import Sequential, model_from_json
-from keras.layers import Dense, Dropout, Activation, Flatten, Input
+from keras.layers import Dense, Dropout, Activation, Flatten, Input, MaxPooling2D
 from keras.layers import Convolution2D, MaxPooling2D
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import np_utils
+from keras.layers import BatchNormalization
 
 import argparse
 import numpy as np
@@ -69,24 +70,22 @@ def data_mnist(one_hot=True):
 
 def modelA():
     model = Sequential()
-    model.add(Convolution2D(64, 5, 5,
+    model.add(Convolution2D(32, kernel_size=(3, 3),
+                            activation='relu',
+                            kernel_initializer='he_uniform',
                             padding='valid',
                             input_shape=(28,
                                          28,
                                          1)))
-    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    model.add(Convolution2D(64, 5, 5))
-    model.add(Activation('relu'))
-
-    model.add(Dropout(0.25))
-
+    model.add(Convolution2D(64, kernel_size=(3, 3), kernel_initializer='he_uniform', activation='relu'))
+    model.add(Convolution2D(64, kernel_size=(3, 3), kernel_initializer='he_uniform', activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    
     model.add(Flatten())
-    model.add(Dense(128))
-    model.add(Activation('relu'))
-
-    model.add(Dropout(0.5))
-    model.add(Dense(10))
+    model.add(Dense(100, activation='relu', kernel_initializer='he_uniform'))
+    model.add(Dense(10, activation='softmax'))
     return model
 
 
