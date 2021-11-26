@@ -23,11 +23,11 @@ def main(attack, src_model_name, target_model_names):
     set_mnist_flags()
 
     x = K.placeholder((None,
-                       FLAGS.IMAGE_ROWS,
-                       FLAGS.IMAGE_COLS,
-                       FLAGS.NUM_CHANNELS))
+                       28,
+                       28,
+                       1))
 
-    y = K.placeholder((None, FLAGS.NUM_CLASSES))
+    y = K.placeholder((None, 10))
 
     _, _, X_test, Y_test = data_mnist()
 
@@ -98,12 +98,14 @@ def main(attack, src_model_name, target_model_names):
 
     # white-box attack
     err = tf_test_error_rate(src_model, x, X_adv, Y_test)
+    print('Whitebox')
     print('{}->{}: {:.1f}'.format(basename(src_model_name),
           basename(src_model_name), err))
 
     # black-box attack
     for (name, target_model) in zip(target_model_names, target_models):
         err = tf_test_error_rate(target_model, x, X_adv, Y_test)
+        print('Blackbox')
         print('{}->{}: {:.1f}'.format(basename(src_model_name), basename(name), err))
 
 
