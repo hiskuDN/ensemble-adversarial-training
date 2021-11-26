@@ -16,9 +16,9 @@ def main(model_name, adv_model_names, model_type):
     tf.disable_v2_behavior()
     np.random.seed(0)
     assert keras.backend.backend() == "tensorflow"
-    set_mnist_flags()
+    # set_mnist_flags()
 
-    flags.DEFINE_integer('NUM_EPOCHS', args.epochs, 'Number of epochs')
+    # flags.DEFINE_integer('NUM_EPOCHS', args.epochs, 'Number of epochs')
 
     # Get MNIST test data
     X_train, Y_train, X_test, Y_test = data_mnist()
@@ -56,6 +56,9 @@ def main(model_name, adv_model_names, model_type):
              x_advs=x_advs, num_of_epochs=args.epochs)
 
     # Finally print the result!
+    # x is the adv model
+    # model is the minst trained model
+    # X_test and Y_test are minst test data
     test_error = tf_test_error_rate(model, x, X_test, Y_test)
     print('Test error: %.1f%%' % test_error)
     save_model(model, model_name)
