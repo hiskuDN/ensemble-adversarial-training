@@ -7,7 +7,7 @@
 # This program is licenced under the BSD 2-Clause licence,
 # contained in the LICENCE file in this directory.
 
-import tensorflow as tf
+import tensorflow._api.v2.compat.v1 as tf
 import numpy as np
 from tensorflow.python.platform import flags
 import keras.backend as K
@@ -172,6 +172,7 @@ class CarliniLi:
         return doit
 
     def attack(self, imgs, targets):
+        tf.disable_v2_behavior()
         """
         Perform the L_0 attack on the given images for the given targets.
         If self.targeted is true, then the targets represents the target labels.
