@@ -17,7 +17,6 @@ def main(model_name, model_type):
     assert keras.backend.backend() == "tensorflow"
     set_mnist_flags()
     
-    flags.DEFINE_integer('NUM_EPOCHS', args.epochs, 'Number of epochs')
 
     # Get MNIST test data
     X_train, Y_train, X_test, Y_test = data_mnist()
